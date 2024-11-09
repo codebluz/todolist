@@ -1,23 +1,20 @@
-# Etapa de build
-FROM ubuntu:latest AS build
+# Etapa de build usando uma imagem base que já inclui Maven e JDK 17
+FROM maven:3.8.4-openjdk-17 AS build
 
-# Atualize e instale Java e Maven
-RUN apt-get update && apt-get install -y openjdk-17-jdk maven
-
-# Defina o diretório de trabalho para o projeto
+# Defina o diretório de trabalho
 WORKDIR /app
 
-# Copie o arquivo pom.xml e as dependências antes do código-fonte para otimizar o cache
+# Copie apenas o arquivo pom.xml e baixe as dependências
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
 # Copie o código-fonte do projeto
 COPY . .
 
-# Compile o projeto
-RUN mvn clean install
+# Compile o projeto e gere o JAR
+RUN mvn clean install -DskipTests
 
-# Etapa final
+# Etapa final para uma imagem leve
 FROM openjdk:17-jdk-slim
 
 # Exponha a porta da aplicação
@@ -28,4 +25,5 @@ COPY --from=build /app/target/todolist-0.0.1-SNAPSHOT.jar app.jar
 
 # Comando de inicialização
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
 
