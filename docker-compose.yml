@@ -1,27 +1,32 @@
 version: "3.8"
 
 services:
-  db:
-    image: postgres:15
+  postgres:
+    container_name: todo_list_postgres
+    image: postgres
+    ports:
+      - "5432:5432"
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=todo_list
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: todo_list
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
 
   app:
-    build: .
+    build:
+      context: .
+    container_name: todo_list_app
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/todolistdb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/todo_list
       SPRING_DATASOURCE_USERNAME: admin
       SPRING_DATASOURCE_PASSWORD: admin
     depends_on:
-      - db
+      - postgres
     networks:
       - app-network
 
